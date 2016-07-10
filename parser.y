@@ -3,6 +3,7 @@
 	#include <stdio.h>
   #include <stdlib.h>
   #include "symbol_table.h"
+  #include "file_creation.h"
   FILE *yyin;
 %}
 
