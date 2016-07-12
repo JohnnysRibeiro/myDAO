@@ -35,7 +35,7 @@ char **write_array_type(int dimension, int i, char type_array[][MAX])
 		}
 		if((strcmp(type_array[i], integer_type)) == 0)
 		{
-			type_out[i] = "int";
+			type_out[i] = "Integer";
 		}		
 		if((strcmp(type_array[i], varchar_type)) == 0)
 		{
@@ -59,7 +59,7 @@ void uncapitalize_name(char uncapitalized_name[MAX])
 	uncapitalized_name[0] = tolower(uncapitalized_name[0]);
 }
 
-void mount_method_insert(FILE *file_out, char name_array[][MAX],  char type_array[][MAX],int real_dimension, char primary_key[MAX])
+void mount_method_insert(FILE *file_out, char name_array[][MAX],  char type_array[][MAX], int real_dimension, char primary_key[MAX])
 {	
 	// Capitalizing names
 	char capital_entity_name[MAX];
@@ -74,9 +74,14 @@ void mount_method_insert(FILE *file_out, char name_array[][MAX],  char type_arra
 	strcpy(capital_primary_key, primary_key);
 	capitalize_name(capital_primary_key);
 
+	int k = 0;
+	char **type_out;
+	type_out = write_array_type(real_dimension, k, type_array);
+
 	//Escrevendo carcaça do método INSERT
-	fprintf(file_out, "	public void insert(%s %s) throws SQLException {\n", capital_entity_name, lowercase_entity_name);
-	fprintf(file_out, "\t\t\tString sql = 'INSERT INTO %s (", name_array[0]);
+	fprintf(file_out, "	public void insert(%s %s) {\n", capital_entity_name, lowercase_entity_name);
+	fprintf(file_out, "\t\tSQLiteDatabase database = this.getWritableDatabase();\n\n");
+	fprintf(file_out, "\t\tString sql = 'INSERT INTO %s (", name_array[0]);
 
 	// fprintf(file_out, "\t\t\tString sql = 'INSERT INTO %s (s, s) VALUE (?, ?)';\n", name_array[0]);
 
@@ -89,60 +94,48 @@ void mount_method_insert(FILE *file_out, char name_array[][MAX],  char type_arra
 		}
 		else
 		{
-			fprintf(file_out, "%s)", name_array[i]);	
+			fprintf(file_out, "%s)' +\n", name_array[i]);	
 		}
 		
 	}
 
-	fprintf(file_out, " VALUE (");
+	fprintf(file_out, "\t\t\t' VALUES ( ' +\n");
 
 	int j = 0;
 	for (j = 1; j < real_dimension; ++j)
 	{
-		
+		char capital_column_name[MAX];
+		strcpy(capital_column_name, name_array[j]);
+		capitalize_name(capital_column_name);
+	
 		if(j != (real_dimension - 1))
 		{
-			fprintf(file_out, "?, ", name_array[j]);	
+			if(strcmp(type_out[j], "String") == 0)
+			{
+				fprintf(file_out, "\t\t\t%s.get%s() + ', ' +\n", lowercase_entity_name, capital_column_name);	
+			}
+			else
+			{
+				fprintf(file_out, "\t\t\t%s.get%s().toString() + ', ' +\n", lowercase_entity_name, capital_column_name);	
+			}
 		}
 		else
 		{
-			fprintf(file_out, "?)';\n", name_array[j]);	
+			if(strcmp(type_out[j], "String") == 0)
+			{
+				fprintf(file_out, "\t\t\t%s.get%s() + ')';\n", lowercase_entity_name, capital_column_name);	
+			}
+			else
+			{
+				fprintf(file_out, "\t\t\t%s.get%s().toString() + ')';\n", lowercase_entity_name, capital_column_name);	
+			}		
 		}
 		
 	}
 
-	fprintf(file_out, "\t\t\tPreparedStatement statement = conn.preparedStatement(sql);\n");
-	
-	// Setting values to statement
-	int l = 1;
-	for(l = 1; l<real_dimension; l++)
-	{
-			char capital_column_name[MAX];
-			strcpy(capital_column_name, name_array[l]);
-			capitalize_name(capital_column_name);
+	fprintf(file_out, "\n\t\tdatabase.execSQL(sql);\n");
 
-			if(strcmp(type_array[l], "INT") == 0)
-			{
-
-				fprintf(file_out, "\t\t\tstatement.setInt(%d, %s.get%s());\n", l, lowercase_entity_name, capital_column_name);
-			}
-			else if(strcmp(type_array[j], "FLOAT") == 0)
-			{
-
-				fprintf(file_out, "\t\t\tstatement.setFloat(%d, %s.get%s());\n", l, lowercase_entity_name, capital_column_name);
-			}
-			else{
-
-				fprintf(file_out, "\t\t\tstatement.setString(%d, %s.get%s());\n", l, lowercase_entity_name, capital_column_name);
-			}
-
-	}
-
-	fprintf(file_out, "\t\t\tint rowsInserted = statement.executeUpdate();\n");
-	fprintf(file_out, "\t\t\tif (rowsInserted > 0) {\n");
-	fprintf(file_out, "\t\t\t\tSystem.out.println('A new %s was inserted successfully!');\n", lowercase_entity_name);
-	fprintf(file_out, "\t\t\t}\n");
-	fprintf(file_out, "\t\t}");
+	fprintf(file_out, "\t}");
 
 }
 
