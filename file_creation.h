@@ -14,7 +14,6 @@ char *getPK(element_instance *list_pointer);
 char **write_array_type(int dimension, int i, char type_array[][MAX]);
 void write_java_file(element_instance *list_pointer, int dimension, char entity_name_validate[MAX]);
 void write_java_DAO_file(element_instance *list_pointer, int dimension, char entity_name_validate[MAX], select_instance *select_list_pointer, selected_fields_instance *selected_fields_list_pointer);
-void write_basic_dao_file();
 
 
 char *write_file_name(char name_array[][MAX], char type)
@@ -70,35 +69,6 @@ int search_column(char entity_name_insert[MAX], element_instance *element_pointe
         }
         return NOT_FOUND;
     }
-}
-
-void write_basic_dao_file()
-{
-	FILE *file_out;
-	char file_out_name[MAX];
-
-	strcpy(file_out_name, "BasicDAO.java");
-
-	char folder_name[MAX];
-	strcpy(folder_name, "DAO/");
-	strcat(folder_name,file_out_name);
-
-	file_out = fopen(folder_name, "w");
-
-	fprintf(file_out, "import java.sql.Connection;\n");
-	fprintf(file_out, "import java.sql.DriverManager;\n\n");
-
-	fprintf(file_out, "public class BasicDAO {\n\n");
-
-	fprintf(file_out, "\tprotected static String databaseLocate = \"jdbc:mysql://\";\n");
-	fprintf(file_out, "\tprotected static String serverName = \"localhost\";\n");
-	fprintf(file_out, "\tprotected static String databaseName = \"test\";\n");
-	fprintf(file_out, "\tprotected static String user = \"root\";\n");
-	fprintf(file_out, "\tprotected static String password = \"root\";\n\n");
-	fprintf(file_out, "\tprotected Connection conn = DriverManager.getConnection(databaseLocate + serverName + \"/\" + databaseName, user, password);\n\n");
-
-	fprintf(file_out, "}");
-	fclose(file_out);
 }
 
 void write_java_file(element_instance *list_pointer, int dimension, char entity_name_validate[MAX])
@@ -183,7 +153,9 @@ void write_java_file(element_instance *list_pointer, int dimension, char entity_
 		exit(1);
 	}
 
-	fprintf(file_out, "public class %s {\n", entity_name_pascalcase);
+	fprintf(file_out, "import java.io.Serializable;\n\n");
+
+	fprintf(file_out, "public class %s implements Serializable{\n", entity_name_pascalcase);
 	fprintf(file_out, "\n");
 
 	for(i = 1; i < real_dimension; i ++)
@@ -361,14 +333,25 @@ void write_java_DAO_file(element_instance *list_pointer, int dimension, char ent
 	}
 
 	// Escrita dos imports
-	fprintf(file_out, "import java.sql.PreparedStatement;\n");
-	fprintf(file_out, "import java.sql.ResultSet;\n");
-	fprintf(file_out, "import java.sql.SQLException;\n");
-	fprintf(file_out, "import java.sql.DriverManager;\n");
-	fprintf(file_out, "import java.util.ArrayList;\n\n");
+	fprintf(file_out, "import android.content.Context;\n");
+	fprintf(file_out, "import android.database.Cursor;\n");
+	fprintf(file_out, "import android.database.sqlite.SQLiteDatabase;\n");
+	fprintf(file_out, "import android.database.sqlite.SQLiteOpenHelper;\n\n");
 
-	fprintf(file_out, "public class %sDAO extends BasicDAO {\n", entity_name_pascalcase);
+	fprintf(file_out, "public class %sDAO extends SQLiteOpenHelper {\n", entity_name_pascalcase);
 	fprintf(file_out, "\n");
+
+	fprintf(file_out, "\tpublic %sDAO(Context context, String databaseName, int databaseVersion) {\n", entity_name_pascalcase);
+	fprintf(file_out, "\t\tsuper(context, databaseName, null, databaseVersion);\n");
+	fprintf(file_out, "\t}\n\n");
+
+	fprintf(file_out, "\tpublic onCreate(SQLiteDatabase database) {\n", entity_name_pascalcase);
+	fprintf(file_out, "\t}\n\n");
+
+	fprintf(file_out, "\tpublic onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) {\n", entity_name_pascalcase);
+	fprintf(file_out, "\t\tdatabase.execSQL('DROP TABLE IF EXISTS %s');\n", name_array[0]);
+	fprintf(file_out, "\t\tonCreate(database);\n");
+	fprintf(file_out, "\t}\n\n");
 
 	mount_method_insert(file_out, name_array, type_array, real_dimension, primary_key);
 	fprintf(file_out, "\n\n");

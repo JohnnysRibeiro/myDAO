@@ -209,10 +209,6 @@ int main(int argc, char *argv[])
 
   printf("Creating DAOs files...\n");
 
-  printf("Creating BasicDAO file...\n");
-  write_basic_dao_file();
-  printf("BasicDAO file successfully created.\n\n");
-
   entity_instance *auxiliary_pointer_dao;
   auxiliary_pointer_dao = entity_list_pointer->next_entity;
 

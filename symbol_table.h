@@ -449,18 +449,4 @@ int is_pk(element_instance *list_pointer, char primary_key[MAX])
 	 return found;
 }
 
-
-void split(char select_fields[MAX], char select_fields_array[][MAX])
-{
-    char * char_pointer;
-    char_pointer = strtok (select_fields," ,.-");
-    int i = 0;
-    while (char_pointer != NULL)
-    { 
-        strcpy(select_fields_array[i], char_pointer);
-        char_pointer = strtok (NULL, " ,.-");
-        i++;
-    }
-}
-
 #endif
