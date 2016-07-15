@@ -171,42 +171,42 @@ void mount_method_update(FILE *file_out, char name_array[][MAX], char type_array
 	strcpy(capital_type_primary_key, type_primary_key);
 	capitalize_name(capital_type_primary_key);
 
-	fprintf(file_out, "	public void update(%s %s) throws SQLException {\n", entity_name_pascalcase, lowercase_entity_name);
+	fprintf(file_out, "	public void update(%s %s) {\n", entity_name_pascalcase, lowercase_entity_name);
+	fprintf(file_out, "\t\t\tSQLiteDatabase database = this.getWritableDatabase();\n\n");
 	fprintf(file_out, "\t\t\tString sql = 'UPDATE %s SET' +\n", name_array[0]);
 	
 	for(i = 1; i<real_dimension; i++)
 	{
-		if(strcmp(name_array[i],primary_key) != 0)
+		char capital_column_name[MAX];
+		strcpy(capital_column_name, name_array[i]);
+		capitalize_name(capital_column_name);
+	
+		if(strcmp(name_array[i],primary_key) != 0 && i != (real_dimension - 1))
 		{
-			fprintf(file_out, "\t\t\t'%s=?' +\n", name_array[i]);	
+			if(strcmp(type_out[i], "String") == 0)
+			{
+				fprintf(file_out, "\t\t\t'%s = ' + %s.get%s() + ', ' +\n", name_array[i], lowercase_entity_name, capital_column_name);	
+			}
+			else	
+			{
+				fprintf(file_out, "\t\t\t'%s = ' + %s.get%s().toString() + ', ' +\n", name_array[i], lowercase_entity_name, capital_column_name);	
+			}
+		} 
+		else if (strcmp(name_array[i],primary_key) != 0)
+		{
+			if(strcmp(type_out[i], "String") == 0)
+			{
+				fprintf(file_out, "\t\t\t'%s = ' + %s.get%s() +\n", name_array[i], lowercase_entity_name, capital_column_name);	
+			}
+			else	
+			{
+				fprintf(file_out, "\t\t\t'%s = ' + %s.get%s().toString() +\n", name_array[i], lowercase_entity_name, capital_column_name);	
+			}
 		}
 	}
 	
-	fprintf(file_out, "\t\t\t'WHERE %s=?';\n", primary_key);
-	fprintf(file_out, "\t\t\tPreparedStatement statement = conn.preparedStatement(sql);\n");
-	
-	int j = 1;
-	for(i = 1; i<real_dimension; i++)
-	{
-		if(strcmp(name_array[i],primary_key) != 0)
-		{
-			char capital_column_name[MAX];
-			strcpy(capital_column_name, name_array[i]);
-			capitalize_name(capital_column_name);
-
-			char capital_type_column[MAX];
-			strcpy(capital_type_column, type_out[i]);
-			capitalize_name(capital_type_column);
-
-			fprintf(file_out, "\t\t\tstatement.set%s(%d, %s.get%s());\n", capital_type_column, j, lowercase_entity_name, capital_column_name);
-			j++;
-		}
-	}
-	fprintf(file_out, "\t\t\tstatement.set%s(%d, %s.get%s());\n", capital_type_primary_key, real_dimension-1, lowercase_entity_name, capital_primary_key);
-	fprintf(file_out, "\t\t\tint rowsInserted = statement.executeUpdate();\n");
-	fprintf(file_out, "\t\t\tif (rowsInserted > 0) {\n");
-	fprintf(file_out, "\t\t\t\tSystem.out.println('An existing %s was updated successfully!');\n", lowercase_entity_name);
-	fprintf(file_out, "\t\t\t}\n");
+	fprintf(file_out, "\t\t\t' WHERE %s =' + %s.get%s();\n\n", primary_key, lowercase_entity_name, capital_primary_key);
+	fprintf(file_out, "\t\t\tdatabase.execSQL(sql);\n");
 	fprintf(file_out, "\t\t}");
 		
 }
