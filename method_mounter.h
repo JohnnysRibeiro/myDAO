@@ -276,32 +276,20 @@ void mount_method_select(FILE *file_out, char name_array[][MAX], char type_array
 	char capital_type_primary_key[MAX];
 	strcpy(capital_type_primary_key, type_primary_key);
 	capitalize_name(capital_type_primary_key);
-	//Escrevendo carcaça do método INSERT
-	fprintf(file_out, "	public %s select(%s %s) throws SQLException {\n",entity_name_pascalcase, type_primary_key, primary_key);
-	fprintf(file_out, "\t\tString sql = 'SELECT * FROM %s WHERE %s = ?';\n", entity_name_pascalcase, primary_key);
-	fprintf(file_out, "\t\t%s %s = new %s();\n", entity_name_pascalcase, lowercase_entity_name, entity_name_pascalcase);
-	fprintf(file_out, "\t\tPreparedStatement statement = conn.preparedStatement(sql);\n");
-	fprintf(file_out, "\t\tstatement.set%s(1, %s);\n", capital_type_primary_key, primary_key);
-	fprintf(file_out, "\t\tResultSet result = statement.executeQuery(sql);\n");
-	//Vai ser um for
-	fprintf(file_out, "\t\twhile (result.next()) {\n");
-	int i = 0,j = 1;
-	for(i = 1; i<real_dimension; i++)
-	{
-		char capital_column_name[MAX];
-		strcpy(capital_column_name, name_array[i]);
-		capitalize_name(capital_column_name);
 
-		char capital_type_column[MAX];
-		strcpy(capital_type_column, type_out[i]);
-		capitalize_name(capital_type_column);
-
-		fprintf(file_out, "\t\t\t%s.set%s(result.get%s(%d));\n", lowercase_entity_name, capital_column_name, capital_type_column, i);
-		j++;
-	}
-	fprintf(file_out, "\t\t}\n");
-	fprintf(file_out, "\t\treturn %s;\n", lowercase_entity_name);
+	fprintf(file_out, "	public %s select(%s %s) {\n",entity_name_pascalcase, type_primary_key, primary_key);
+	fprintf(file_out, "\t\tSQLiteDatabase database = this.getWritableDatabase();\n\n");
 	
+	fprintf(file_out, "\t\tString sql = 'SELECT * FROM %s WHERE %s =' + %s.get%s();\n", entity_name_pascalcase, primary_key, lowercase_entity_name, capital_primary_key);
+	fprintf(file_out, "\t\tCursor cursor = database.rawQuery(sql, null);\n");
+	
+	fprintf(file_out, "\t\tif(cursor != null && cursor.moveToFirst()) {\n");
+	fprintf(file_out, "\t\t\t%s %s = new %s(cursor);\n", entity_name_pascalcase, lowercase_entity_name, entity_name_pascalcase);
+	fprintf(file_out, "\t\t\tcursor.close();\n");
+	fprintf(file_out, "\t\t\treturn %s;\n", lowercase_entity_name);
+	fprintf(file_out, "\t\t}\n");
+	
+	fprintf(file_out, "\t\treturn null;\n");
 	fprintf(file_out, "\t}");
 		
 }
