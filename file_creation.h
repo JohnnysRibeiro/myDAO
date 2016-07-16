@@ -168,6 +168,21 @@ void write_java_file(element_instance *list_pointer, int dimension, char entity_
 	fprintf(file_out, "\n");
 	fprintf(file_out, "	}\n\n");
 
+  fprintf(file_out, "  public %s(Cursor cursor) {\n", entity_name_pascalcase);
+
+  for(i = 1; i < real_dimension; i ++)
+	{
+    if(strcmp(type_out[i], "String") == 0)
+    {
+  	  fprintf(file_out, "\t\tthis.%s = cursor.GetString(%d);\n", name_array[i], i-1);
+    }
+    else if(strcmp(type_out[i], "Integer") == 0) 
+    {
+      fprintf(file_out, "\t\tthis.%s = Integer.parseInt(cursor.getString(%d);\n", name_array[i], i-1);
+    }
+	}
+
+  fprintf(file_out, "  }\n\n");
 	//Escrevendo Gettings
 	for(i = 1; i < real_dimension; i ++)
 	{	
