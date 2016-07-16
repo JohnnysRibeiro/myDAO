@@ -78,12 +78,9 @@ void mount_method_insert(FILE *file_out, char name_array[][MAX],  char type_arra
 	char **type_out;
 	type_out = write_array_type(real_dimension, k, type_array);
 
-	//Escrevendo carcaça do método INSERT
 	fprintf(file_out, "	public void insert(%s %s) {\n", capital_entity_name, lowercase_entity_name);
 	fprintf(file_out, "\t\tSQLiteDatabase database = this.getWritableDatabase();\n\n");
 	fprintf(file_out, "\t\tString sql = 'INSERT INTO %s (", name_array[0]);
-
-	// fprintf(file_out, "\t\t\tString sql = 'INSERT INTO %s (s, s) VALUE (?, ?)';\n", name_array[0]);
 
 	int i = 0; 
 	for (i = 1; i < real_dimension; ++i)
@@ -241,19 +238,11 @@ void mount_method_delete(FILE *file_out, char name_array[][MAX], char type_array
 	strcpy(capital_type_primary_key, type_primary_key);
 	capitalize_name(capital_type_primary_key);
 
-	fprintf(file_out, "	public void delete(%s %s) throws SQLException {\n", entity_name_pascalcase, lowercase_entity_name);
-	fprintf(file_out, "\t\t\tString sql = 'DELETE FROM %s WHERE %s=?';\n", name_array[0], primary_key);
-	fprintf(file_out, "\t\t\tPreparedStatement statement = conn.preparedStatement(sql);\n");
+	fprintf(file_out, "	public void delete(%s %s) {\n", entity_name_pascalcase, lowercase_entity_name);
+  fprintf(file_out, "\t\t\tSQLiteDatabase database = this.getWritableDatabase();\n\n");
+	fprintf(file_out, "\t\t\tString sql = 'DELETE FROM %s WHERE %s=' + %s.get%s();\n\n", name_array[0], primary_key, lowercase_entity_name, capital_primary_key);
 	
-	char capital_column_name[MAX];
-	strcpy(capital_column_name, primary_key);
-	capitalize_name(capital_column_name);
-	fprintf(file_out, "\t\t\tstatement.set%s(1, %s.get%s());\n", capital_type_primary_key, lowercase_entity_name, capital_column_name);
-	
-	fprintf(file_out, "\t\t\tint rowsInserted = statement.executeUpdate();\n");
-	fprintf(file_out, "\t\t\tif (rowsInserted > 0) {\n");
-	fprintf(file_out, "\t\t\t\tSystem.out.println('An existing %s was deleted successfully!');\n", lowercase_entity_name);
-	fprintf(file_out, "\t\t\t}\n");
+	fprintf(file_out, "\t\t\tdatabase.execSQL(sql);\n");
 	fprintf(file_out, "\t\t}");
 		
 }

@@ -4,5 +4,5 @@ main: scanner.l
 	gcc lex.yy.c parser.tab.c -o salandroid
 
 clean:
-	rm lex.* parser.tab.* salandroid
-	rm -r Model/ DAO/
+		rm lex.* parser.tab.* salandroid
+		rm -r Model/ DAO/ 
